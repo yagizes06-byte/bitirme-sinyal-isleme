@@ -7,8 +7,6 @@ Bu depo, Kırıkkale Üniversitesi (KKÜ) Elektrik-Elektronik Mühendisliği Bit
 Dövüş sporlarında (özellikle boks) sporcunun aldığı darbelerin şiddetini gerçek zamanlı olarak ölçmek, Head Injury Criterion (HIC15) değerini hesaplamak ve elde edilen verileri ring kenarındaki sağlık görevlilerine kablosuz olarak ileterek olası kafa travmalarını önlemektir. 
 
 ## Sorumlu Olunan Alt Sistem Özellikleri (Bu Deponun Kapsamı)
-* **Gerçek Zamanlı Veri Toplama:** ADXL375 (±200g) ve MPU6050 sensörlerinden SPI/I2C üzerinden yüksek örnekleme hızıyla ivme ve jiroskop verilerinin okunması.
-* **Kablosuz İletişim:** Kask üzerindeki ESP32-C3 (Gönderici) ile bilgisayara bağlı ESP32-C3 (Alıcı) arasında ESP-NOW protokolü ile düşük gecikmeli, kayıpsız paket aktarımı.
 * **Sinyal İşleme & HIC Hesaplama:** Gelen raw (ham) ivme verilerinin Python yazılımında (PySerial) ayrıştırılması, ofset temizliği ve darbenin tepe (peak) ivmesi ile HIC15 değerinin matematiksel olarak hesaplanması.
 * **Karar Destek Arayüzü:** Sporcunun aldığı darbe şiddetine göre risk durumunu (Yeşil / Sarı / Kırmızı) canlı grafiklerle ekrana yansıtan kullanıcı arayüzü ve seans kayıtlarının (CSV) tutulması.
 

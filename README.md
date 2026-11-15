@@ -214,6 +214,88 @@ Sarı** gösterilir. Azimut/yükseklik açısını bilgisayar tepe vektöründen
 
 ---
 
+### Uyum tablosu: arkadaşımın paket sözleşmesi ↔ benim giriş biçimim
+
+Sol taraf arkadaşımın README'sindeki "5. Kablosuz paket sözleşmesi" ve ortak kararlar; sağ
+taraf benim kodumun beklediği biçim (`src/darbe/protokol.py`). Bayt yerleşimi
+`tests/test_protokol.py` içindeki `*_bayt_yerlesimi_*` testleriyle otomatik denetlenir.
+
+> Not: Proje şablonunda alt sistem sınırı "BLE paket sözleşmesi" olarak geçiyor. Ekip kablosuz
+> yöntem olarak **ESP-NOW** seçti (gerekçesi arkadaşımın README'sinde). Benim yazılımım kablosuz
+> paketi alıcı kart üzerinden **USB seri port** ile alır; sınır yine aynı paket sözleşmesidir.
+
+**Genel**
+
+| Konu | Arkadaşımın sözleşmesi | Benim giriş biçimim | Uyuşuyor mu |
+|---|---|---|---|
+| Kablosuz yöntem | ESP-NOW, ≤ 250 bayt | ESP-NOW yükü alıcıdan değiştirilmeden gelir | evet |
+| Bilgisayara iletim | alıcı şu an metin satırları basıyor | `AA 55` + uzunluk + yük + CRC-16 çerçevesi | **hayır, karar alındı** — alıcı çerçeveye geçecek (arkadaşım) |
+| Bayt sırası, dolgu | little-endian, packed | `struct` biçimleri `<` (little-endian, dolgusuz) | evet |
+| Paket başı | 1. bayt sürüm, 2. bayt tip | `veri[0]` sürüm, `veri[1]` tip | evet |
+| Örnekleme hızı | ADXL375 3200 Hz; pakette yok | sabit `ORNEKLEME_HZ = 3200` | evet |
+| Olay penceresi | 160 + 320 = 480 örnek | `ON_TETIK_ORNEK = 160`, `TOPLAM_ORNEK = 480` | evet |
+| Kalibrasyon | sabit 6 yönlü kalibrasyon, değerler ___ | `Kalibrasyon` (şimdilik tipik 0,049 g/LSB, ofset 0) | **bekliyor** — sabitler ölçülünce ikimiz de aynı sayıyı yazacağız |
+| Yeni alan kuralı | paketin sonuna eklenir, sürüm artar | yeni sürümde fazla baytlar `ek_baytlar` olarak saklanır | evet |
+
+**0x01 ÖZET (29 bayt)** — kodda `struct "<BBBHIHhhhHHHHBBH"`
+
+| Alan | Birim | Bayt (konum) | Arkadaşımın sözleşmesi | Benim alanım | Uyuşuyor mu |
+|---|---|---|---|---|---|
+| `protokol_surumu` | — | 1 (0) | uint8 | `surum` | evet |
+| `paket_tipi` | — | 1 (1) | uint8, 0x01 | `TIP_OZET = 0x01` | evet |
+| `cihaz_id` | — | 1 (2) | uint8 | `cihaz_id` | evet |
+| `sira_no` | — | 2 (3) | uint16, ÖZET+DURUM ortak sayaç | `sira_no` + kayıp sayacı | evet |
+| `zaman_damgasi_us` | µs | 4 (5) | uint32 | `zaman_damgasi_us` | evet |
+| `tepe_ivme_bilesik` | 0,01 g | 2 (9) | uint16 | `tepe_ivme_bilesik_cg` | evet |
+| `tepe_ivme_x/y/z` | 0,01 g | 3 × 2 (11) | int16 | `tepe_ivme_x_cg` … `_z_cg` | evet |
+| `tepe_acisal_hiz` | 0,1 °/s | 2 (17) | uint16 | `tepe_acisal_hiz_ddps` | evet |
+| `darbe_suresi_us` | µs | 2 (19) | uint16 | `darbe_suresi_us` | evet |
+| `delta_v` | mm/s | 2 (21) | uint16 | `delta_v_mm_s` | evet (aralık eşiği ve integral yöntemi ___) |
+| `hic15` | 0,1 | 2 (23) | uint16, **0,1 ölçek** | `hic15_x10` | **evet, karar alındı** — arkadaşımın README'sinde "birimsiz" yazıyor, 0,1 ölçek olarak güncellenecek |
+| `seviye` | — | 1 (25) | uint8, eşikler ___ | `seviye` | evet (eşikler ___) |
+| `bayraklar` | bit | 1 (26) | bit0–3 | bit0–3 hepsi arayüzde uyarı olarak gösterilir | evet |
+| `pil_mv` | mV | 2 (27) | uint16 | `pil_mv` | evet |
+
+**0x02 DURUM (12 bayt)** — kodda `struct "<BBBHIHB"`
+
+| Alan | Birim | Bayt (konum) | Arkadaşımın sözleşmesi | Benim alanım | Uyuşuyor mu |
+|---|---|---|---|---|---|
+| `protokol_surumu`, `paket_tipi` | — | 1 + 1 (0) | uint8, 0x02 | `surum`, `TIP_DURUM` | evet |
+| `cihaz_id` | — | 1 (2) | uint8 | `cihaz_id` | evet |
+| `sira_no` | — | 2 (3) | uint16 | `sira_no` | evet |
+| `zaman_damgasi_us` | µs | 4 (5) | uint32 | `zaman_damgasi_us` | evet |
+| `pil_mv` | mV | 2 (9) | uint16 | `pil_mv` | evet |
+| `bayraklar` | bit | 1 (11) | uint8 | `bayraklar` | evet |
+| Gönderim aralığı | s | — | 1 s | 2,5 s sessizlikte "bağlantı yok" | evet |
+
+**0x03 HAM parça (13 + n × 12 bayt)** — kodda `struct "<BBHBBHBI"` + n × `"<6h"`
+
+| Alan | Birim | Bayt (konum) | Arkadaşımın sözleşmesi | Benim alanım | Uyuşuyor mu |
+|---|---|---|---|---|---|
+| `protokol_surumu`, `paket_tipi` | — | 1 + 1 (0) | uint8, 0x03 | `surum`, `TIP_HAM` | evet |
+| `olay_no` | — | 2 (2) | uint16 = ÖZET `sira_no` | `olay_no` | evet |
+| `parca_no`, `parca_toplam` | — | 1 + 1 (4) | uint8 | `parca_no`, `parca_toplam` | evet |
+| `ilk_ornek_no` | — | 2 (6) | uint16 | `ilk_ornek_no` | evet |
+| `n` | adet | 1 (8) | uint8, 1…19 | `len(ornekler)` | evet |
+| `tetik_zamani_us` | µs | 4 (9) | uint32, ÖZET ile aynı | `tetik_zamani_us` | **evet, karar alındı** — eski taslakta ms idi |
+| `ax, ay, az` | LSB | 3 × 2 | int16, kalibre edilmemiş | ilk 3 değer | evet |
+| `gx, gy, gz` | LSB | 3 × 2 | int16, tutulmuş son jiro değeri | son 3 değer | evet |
+
+**Uyuşmayan ya da açık kalan yerler — kim ne yapacak**
+
+| Konu | Kim | Ne yapılacak |
+|---|---|---|
+| Alıcının USB çıkışı | arkadaşım | metin yerine `AA 55 … CRC` çerçevesi; açılışta metin basmaması önerildi (basarsa benim ayrıştırıcım atlıyor) |
+| `hic15` ölçeği ve HAM zamanı | arkadaşım | kendi README'sinin 5. bölümünü kararlara göre güncellemek (0,1 ölçek; `tetik_zamani_us`) |
+| Kalibrasyon sabitleri | arkadaşım ölçer, ikimiz yazarız | ADXL375 gelince 6 yönlü kalibrasyon; değerler iki README'ye ve iki koda aynı girilir |
+| Δv aralık eşiği, integral yöntemi | ortak | ilk kayıtlara bakarak; öneri: dikdörtgen yöntem |
+| Seviye eşikleri | ortak, danışmanla | kaynaklı değer; kart ve benim yazılımım aynı tabloyu kullanır |
+| Paket kaybı ve 26 parça | ortak | ESP-NOW testinde kayıp oranı ölçülünce gerekirse yeniden gönderme |
+
+Benim tarafımda değişiklik gerekmiyor; kodum ortak sözleşmenin son haline göre yazıldı.
+
+---
+
 ## CSV kayıt formatı (Python ve MATLAB ortak sözleşmesi)
 
 - Ayraç `;`, ondalık ayırıcı **virgül**, binlik ayırıcı yok. Türkçe Excel'de doğrudan açılır.

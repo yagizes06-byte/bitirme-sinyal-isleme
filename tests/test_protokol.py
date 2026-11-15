@@ -69,6 +69,36 @@ def test_ozet_bayt_yerlesimi_donanim_tablosuyla_ayni():
     assert struct.unpack_from("<H", b, 27)[0] == 3900            # pil_mv
 
 
+def test_durum_bayt_yerlesimi_donanim_tablosuyla_ayni():
+    b = paketle(Durum(cihaz_id=3, sira_no=513, zaman_damgasi_us=0x01020304, pil_mv=3700,
+                      bayraklar=0x04))
+    assert b[:3] == bytes([1, 0x02, 3])                          # surum, tip, cihaz_id
+    assert struct.unpack_from("<H", b, 3)[0] == 513              # sira_no
+    assert struct.unpack_from("<I", b, 5)[0] == 0x01020304       # zaman_damgasi_us
+    assert struct.unpack_from("<H", b, 9)[0] == 3700             # pil_mv
+    assert b[11] == 0x04                                         # bayraklar
+
+
+def test_ham_bayt_yerlesimi():
+    b = paketle(HamParca(olay_no=513, parca_no=2, parca_toplam=26, ilk_ornek_no=38,
+                         tetik_zamani_us=0x0A0B0C0D, ornekler=[(1, -2, 3, -4, 5, -6)]))
+    assert b[:2] == bytes([1, 0x03])
+    assert struct.unpack_from("<H", b, 2)[0] == 513              # olay_no
+    assert (b[4], b[5]) == (2, 26)                               # parca_no, parca_toplam
+    assert struct.unpack_from("<H", b, 6)[0] == 38               # ilk_ornek_no
+    assert b[8] == 1                                             # n
+    assert struct.unpack_from("<I", b, 9)[0] == 0x0A0B0C0D       # tetik_zamani_us
+    assert struct.unpack_from("<6h", b, 13) == (1, -2, 3, -4, 5, -6)
+
+
+def test_bayrak_bitleri():
+    o = ornek_ozet()
+    o.bayraklar = 0b1111
+    assert o.adxl_doydu and o.mpu_doydu and o.dusuk_pil and o.tampon_tasti
+    o.bayraklar = 0
+    assert not (o.adxl_doydu or o.mpu_doydu or o.dusuk_pil or o.tampon_tasti)
+
+
 def test_crc_bilinen_deger():
     assert crc16(b"123456789") == 0x29B1
 

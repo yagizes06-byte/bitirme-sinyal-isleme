@@ -121,6 +121,18 @@ class Ozet:
     def adxl_doydu(self) -> bool:
         return bool(self.bayraklar & BAYRAK_ADXL_DOYDU)
 
+    @property
+    def mpu_doydu(self) -> bool:
+        return bool(self.bayraklar & BAYRAK_MPU_DOYDU)
+
+    @property
+    def dusuk_pil(self) -> bool:
+        return bool(self.bayraklar & BAYRAK_DUSUK_PIL)
+
+    @property
+    def tampon_tasti(self) -> bool:
+        return bool(self.bayraklar & BAYRAK_TAMPON_TASTI)
+
 
 @dataclass
 class Durum:

@@ -339,6 +339,12 @@ class AnaPencere(QMainWindow):
                 uyarilar.append("DOĞRULANMAMIŞ: ham veri eksik geldi, yalnız kartın sonucu gösteriliyor.")
             if o.adxl_doydu:
                 uyarilar.append("İvmeölçer doydu: gerçek değer gösterilenden yüksek olabilir.")
+            if o.mpu_doydu:
+                uyarilar.append("Jiroskop doydu: gerçek açısal hız gösterilenden yüksek olabilir.")
+            if o.tampon_tasti:
+                uyarilar.append("Kartın tamponu taştı: bu olaydan önce/sonra veri kaybolmuş olabilir.")
+            if o.dusuk_pil:
+                uyarilar.append("Kaskın pili düşük.")
         az_yk = s.kart_yon_der
         d = self.deger
         d["tepe"].setText(f"{_s(o.tepe_ivme_g if o else None)} g")

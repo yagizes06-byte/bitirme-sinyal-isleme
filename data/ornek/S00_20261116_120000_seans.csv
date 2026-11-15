@@ -1,0 +1,35 @@
+﻿anahtar;deger
+sporcu_kodu;S00
+seans_turu;sentetik
+veri_kaynagi;Simülatör
+baslangic;2026-11-16 12:00:00,000
+bitis;2026-11-16 12:00:21,000
+ornekleme_hz;3200
+on_tetik_ornek;160
+kal_ofset_x_lsb;0,000000
+kal_duyarlilik_x_lsb_per_g;20,408163
+kal_ofset_y_lsb;0,000000
+kal_duyarlilik_y_lsb_per_g;20,408163
+kal_ofset_z_lsb;0,000000
+kal_duyarlilik_z_lsb_per_g;20,408163
+kal_jiro_dps_per_lsb;0,060976
+olay_sayisi;20
+yesil;15
+sari;3
+kirmizi;2
+eksik;0
+maks_tepe_g;200,020000
+maks_hic15;1749,300000
+ort_mutlak_fark_hic_yuzde;15,149201
+maks_mutlak_fark_hic_yuzde;72,182207
+raunt_sayisi;1
+cerceve_gecerli;561
+crc_hatasi;0
+atlanan_bayt;0
+cozum_hatasi;0
+paket_ozet;20
+paket_durum;21
+paket_ham;520
+kayip_sira_no;0
+olay_tamam;20
+olay_eksik;0

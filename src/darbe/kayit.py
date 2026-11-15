@@ -23,6 +23,7 @@ from .isleme import OlaySonucu
 
 SPORCU_KODU_DESENI = r"S\d{2,3}"
 SEANS_TURLERI = ("antrenman", "sparring", "mac")
+SENTETIK_TUR = "sentetik"                 # yalnız simülatörle üretilen örnek kümeler için
 ETIKETLER = ("", "darbe", "darbe_degil")
 
 OLAY_SUTUNLARI = [
@@ -91,7 +92,7 @@ class SeansKaydi:
                  baslangic: datetime, kal: Kalibrasyon = Kalibrasyon()):
         if not sporcu_kodu_gecerli(sporcu_kodu):
             raise ValueError("Sporcu kodu S01, S02 ... biçiminde olmalı (isim yazılmaz).")
-        if seans_turu not in SEANS_TURLERI:
+        if seans_turu not in SEANS_TURLERI + (SENTETIK_TUR,):
             raise ValueError(f"Seans türü şunlardan biri olmalı: {SEANS_TURLERI}")
         self.klasor = Path(klasor)
         self.klasor.mkdir(parents=True, exist_ok=True)

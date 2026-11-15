@@ -30,6 +30,7 @@ yazılım o noktadan sonrasını yapar.
 | Örnekleme hızı ve sensör kırpılmasının HIC15'e etkisinin analizi | yapıldı |
 | Uyarı arayüzü: Yeşil/Sarı/Kırmızı gösterge, son darbe grafiği, seans özeti, etiketleme, CSV kaydı | yapıldı |
 | Ham verinin filtrelenmesi | planlandı |
+| Simülatörde darbe olmayan olaylar ve 20 örneklik etiketli test kümesi | yapıldı |
 | **Darbe / darbe değil ayrımı** (kart ayrım yapmıyor; eşiği aşan her olayı gönderiyor) | planlandı |
 | MATLAB: çevrimdışı analiz, filtre/eşik karşılaştırması, HIC15 çapraz doğrulaması | planlandı |
 
@@ -339,6 +340,81 @@ iletişim sayaçları (CRC hatası, kayıp `sira_no`, eksik olay).
 
 ---
 
+## Simülatör ve test verisi
+
+Gerçek kart hazır olmadığı için yazılım bir **simülatörle** geliştirildi
+(`src/darbe/simulator.py`). Simülatör, alıcı kartın USB'den göndereceği baytların **aynısını**
+üretir: saniyede bir DURUM paketi, her olayda 1 ÖZET + 26 HAM parça, hepsi USB çerçevesinde.
+Program bu baytları gerçek seri porttan geliyormuş gibi okur; gerçek karta geçiş yalnızca
+kaynağın "Simülatör" yerine COM portu seçilmesidir.
+
+Simülatörün içinde kartın hesaplarını yapan ayrı bir kod vardır (kartın C kodu gibi, düz
+döngülerle ve dikdörtgen integralle). Böylece simülatörde de "kartın sonucu" ile "bilgisayarın
+bağımsız hesabı" iki ayrı uygulamadır.
+
+### Üretilen olaylar
+
+Tüm biçimler ve aralıklar **simülasyon varsayımıdır**, ölçüm ya da literatür değeri değildir.
+Hepsi kartın 10 g tetik eşiğini aşacak şekilde seçildi (aşmayan olayı kart zaten göndermez).
+
+| Olay | Etiket | Biçim | Parametreler |
+|---|---|---|---|
+| Darbe | `darbe` | yarım sinüs, üçgen ya da dikdörtgen tek darbe | tepe 15–180 g, süre 4–15 ms, rastgele yön; jiro tepe 100–1500 °/s |
+| Titreşim (sensör kutusuna tıklama/vurma) | `darbe_degil` | sönümlü, işaret değiştiren salınım | tepe 20–60 g, sönüm 2–6 ms, 350–700 Hz |
+| Sert baş hareketi (eskiv, kafa sallama) | `darbe_degil` | uzun, yumuşak yarım sinüs | tepe 11–16 g, süre 40–120 ms |
+| Kaskın yere bırakılması/düşmesi | `darbe_degil` | önce serbest düşme (≈ 0 g), sonra kısa çarpma ve 3 sekme | ilk çarpma tepe 20–90 g, 0,8–2 ms |
+
+Tüm olaylarda: yerçekimi +z yönünde 1 g, sensör gürültüsü 0,2 g (standart sapma), ADXL375
+ölçüm sınırında (±200 g) kırpma ve doyma bayrağı, jiroskop 1 kHz'de yenilenip tutulur
+(gerçek karttaki gibi), istenirse paketlerin rastgele bir oranı kaybolur. Rastgele seansta
+olayların %20'si darbe değildir (`hareket_orani`). Seviye için kullanılan HIC15 eşikleri
+(100 / 400) **geçicidir**, yalnızca rengin çalıştığını göstermek içindir.
+
+### Gerçek sensör verisinden farkı
+
+- Darbe biçimleri ideal matematiksel şekillerdir. Gerçek darbede kask köpüğü, kafa–boyun
+  hareketi, birden çok tepe ve eksenler arası karmaşık ilişki vardır.
+- Gürültü yalnız beyaz Gauss gürültüsüdür. Sensörün iç alçak geçiren filtresi (≈ 1600 Hz),
+  sıcaklık kayması, kablo ve montaj titreşimi modellenmedi.
+- Kalibrasyon kusursuz kabul edildi (ofset 0, tipik duyarlılık); gerçek kartta eksenler
+  arası duyarlılık farkı ve ofset olacak.
+- Jiroskop sinyali ivmeden türetilmiyor, ayrı ve basit bir biçimle üretiliyor.
+- Darbe olmayan olaylar darbeden **ayrışacak şekilde** tasarlandı (süre, salınım, serbest
+  düşme). Gerçek veride sınıflar daha çok örtüşecek; bu yüzden asıl sınama gerçek
+  etiketli kayıtlarla yapılacak.
+- Paket kayıpları birbirinden bağımsız varsayıldı; gerçek kablosuz kayıplar art arda
+  (öbek hâlinde) olabilir.
+
+### Etiketli test kümesi (20 örnek)
+
+Darbe ayrımını sınamak için (başarı ölçütleri: duyarlılık ve yanlış alarm oranı) iki aşamalı
+bir yöntem kullanılır.
+
+**1. Sentetik küme (hazır):** `python araclar\etiketli_test_kumesi.py` komutu
+`data\ornek\` içine 20 olaylık bir küme yazar: 10 darbe + 10 darbe değil (4 titreşim, 3 baş
+hareketi, 3 kask bırakma). Parametreler `src/darbe/test_kumesi.py` içinde elle seçildi;
+aralıklara yayılır ve sınır durumlarını içerir: 15 g'lik zayıf darbe, 4 ms'lik sivri darbe,
+tek eksende 200 g'yi aşıp kırpılan darbe, 16 g'lik sert baş hareketi. Olaylar programın
+normal hattından geçer ve README'deki CSV biçiminde kaydedilir; `etiket` sütunu doludur.
+Gerçek parametreler `_tanim.csv` dosyasındadır. Aynı tohum her seferinde aynı dosyayı üretir.
+
+**2. Gerçek küme (sensör gelince):**
+
+- *Darbe örnekleri:* Normal antrenman/sparring seansı sırasında kayıt alınır ve seans
+  videoyla çekilir. Seanstan sonra her olay, `pc_zamani` ile videodaki an eşleştirilerek
+  arayüzdeki "Darbe / Darbe değil" düğmeleriyle etiketlenir. Projede sporcuya özel darbe
+  testi yapılmaz; yalnız olağan seanslardaki darbeler kullanılır.
+- *Darbe değil örnekleri:* Kask sporcuda değilken ya da sporcu dinlenirken bilinçli olarak
+  üretilir: kask kutusuna parmakla vurma, kaskı takıp çıkarma, kaskı masaya bırakma, sert
+  baş hareketleri (eskiv, kafa sallama). Bu olayların etiketi kayıt anında bellidir.
+- Her iki türden en az 10'ar olay toplanır; gerçek etiketli küme de aynı CSV biçiminde
+  `data\ornek\` altına konur (sporcu kodu ile, isimsiz).
+
+**Sınırlama:** 10 + 10 örnek ilk sınama içindir, ölçütü kesin kanıtlamaya yetmez. Örneğin 10
+darbenin 10'u doğru bulunsa bile duyarlılığın %95 güven aralığının alt sınırı ≈ %69'dur
+(Clopper–Pearson); 10 darbe olmayan olayın hiçbiri alarm vermese bile yanlış alarm oranının
+üst sınırı ≈ %31'dir. Hedef değerler belirlenirken gereken örnek sayısı da buna göre seçilmeli.
+
 ## Klasör yapısı
 
 ```
@@ -351,7 +427,8 @@ C:\darbe_olcer
 ├─ tests/               otomatik testler (pytest)
 ├─ araclar/             tek seferlik analiz betikleri (ör. örnekleme/kırpılma analizi)
 ├─ matlab/              .m betikleri: CSV okuma, bağımsız HIC15, karşılaştırma, grafikler
-├─ data/ornek/          depoda paylaşılan örnek/sentetik kayıtlar
+├─ data/ornek/          depoda paylaşılan örnek kayıtlar: 20 olaylık etiketli sentetik küme
+│                       (S00_..._olaylar/ham/seans/tanim.csv), örnekleme analizi sonuçları
 ├─ data/kayitlar/       gerçek seans kayıtları (varsayılan olarak depoya gönderilmez)
 └─ docs/                şema, teyit listesi, test protokolleri, rapor görselleri
 ```
@@ -366,6 +443,7 @@ pip install -r requirements.txt
 pytest -v
 python araclar\analiz_ornekleme.py
 python araclar\simulator_dene.py
+python araclar\etiketli_test_kumesi.py
 python calistir.py
 ```
 

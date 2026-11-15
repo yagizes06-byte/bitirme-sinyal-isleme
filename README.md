@@ -193,7 +193,7 @@ Sarı** gösterilir. Azimut/yükseklik açısını bilgisayar tepe vektöründen
 - Kodlama UTF-8 (BOM'lu); **sütun adları yalnız ASCII** (MATLAB değişken adı olabilsin diye).
 - Sporcu **isimsiz**, kodla tutulur (`S01`, `S02`…). Kod–isim eşleşmesi depoya **konmaz**.
 - Bir seans = üç dosya, `data/kayitlar/` içinde:
-  `S01_20261114_2300_seans.csv`, `..._olaylar.csv`, `..._ham.csv`
+  `S01_20261114_230000_seans.csv`, `..._olaylar.csv`, `..._ham.csv`
 
 **`_seans.csv`** — iki sütun: `anahtar;deger`. Sporcu kodu, seans türü
 (antrenman/sparring/maç), başlangıç–bitiş, veri kaynağı (simülatör / seri port), protokol ve
@@ -237,6 +237,7 @@ C:\darbe_olcer
 ├─ README.md            bu dosya: proje, sözleşme, kurulum
 ├─ requirements.txt     Python paketleri ve sürümleri
 ├─ pyproject.toml       proje ve test ayarları
+├─ calistir.py          masaüstü uygulamasını başlatır
 ├─ src/darbe/           Python kaynak kodu (protokol, hesap, simülatör, arayüz)
 ├─ tests/               otomatik testler (pytest)
 ├─ araclar/             tek seferlik analiz betikleri (ör. örnekleme/kırpılma analizi)
@@ -256,7 +257,11 @@ pip install -r requirements.txt
 pytest -v
 python araclar\analiz_ornekleme.py
 python araclar\simulator_dene.py
+python calistir.py
 ```
+
+`python calistir.py` masaüstü uygulamasını açar. Kaynak olarak **Simülatör** ya da alıcı kartın
+COM portu seçilir; kayıtlar `data\kayitlar\` klasörüne yazılır.
 
 Gerçek cihaza geçiş tek ayardır: `python araclar\simulator_dene.py --port COM8`
 (takılı portlar: `--portlar`).
@@ -272,7 +277,8 @@ Gerçek cihaza geçiş tek ayardır: `python araclar\simulator_dene.py --port CO
 - [x] Bağımsız doğrulama çekirdeği: HIC15, tepe ivme, yön, Δv, darbe süresi + analitik testler
 - [x] Örnekleme hızı ve kırpılma hatasının sayısal analizi (docs/analiz_ornekleme.md)
 - [x] Simülatör (gerçek cihazla aynı baytları üreten) + seri port kaynağı + işleme hattı
-- [ ] Arayüz: risk göstergesi, son darbe grafiği, seans özeti, sayaçlar, CSV kaydı
+- [x] Arayüz: risk göstergesi, son darbe grafiği, seans özeti, sayaçlar, CSV kaydı, etiketleme
+- [ ] Gösterim gecikmesinin ölçülmesi (başarı ölçütü)
 - [ ] MATLAB: CSV okuma, bağımsız HIC15, çapraz doğrulama, filtre/eşik karşılaştırması
 - [ ] İlk gerçek örnek kayıt ve seri porta geçiş
 - [ ] Risk eşikleri için kaynaklı literatür taraması (danışmanla karar)

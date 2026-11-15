@@ -5,43 +5,70 @@
 
 ## Konu
 
-Boksör kaskına yerleştirilen sensörlerden gelen darbe olaylarını bilgisayarda okuyan; kartın
-hesapladığı tepe ivme, HIC15 ve yön sonuçlarını sağlık ekibine Yeşil/Sarı/Kırmızı risk
-göstergesiyle sunan, aynı sonuçları ham veriden bağımsız olarak yeniden hesaplayarak doğrulayan
-ve seansı kayıt altına alan bir masaüstü yazılımı.
+Boks kaskındaki sensör kartından gelen darbe olaylarını okuyup gerçek darbeyi diğer
+hareketlerden ayıran, darbenin şiddetini, yönünü ve HIC15 değerini hesaplayarak sağlık ekibine
+Yeşil/Sarı/Kırmızı risk uyarısı veren sinyal işleme ve karar destek yazılımı.
 
 ## Sistem şeması
 
 ![Sistem şeması](docs/sistem_semasi.png)
 
-Kasktaki kart (ESP32-C3 #1) darbeyi algılar ve **yalnız tetiklendiğinde** iki tür bilgi gönderir:
-kendi hesapladığı **özet** (tepe ivme, HIC15, yön, risk) ve olay penceresinin **ham örnekleri**.
-Alıcı kart (ESP32-C3 #2) bunları USB seri port üzerinden bilgisayara iletir.
+Kasktaki kart (ESP32-C3 #1) bileşke ivme 10 g'yi aşınca **yalnız o olayı** gönderir: kendi
+hesapladığı **özet** (tepe ivme, HIC15, yön, seviye) ve olay penceresinin **ham örnekleri**.
+Alıcı kart (ESP32-C3 #2) bunları USB seri port üzerinden bilgisayara iletir; bu depodaki
+yazılım o noktadan sonrasını yapar.
 
-## Benim alt sistemim
+## Kapsam
 
-İş bölümü:
+### Kapsam içi — benim alt sistemim (bu depo)
 
-| Kim | Ne yapar |
+| İş | Durum |
 |---|---|
-| Donanım / gömülü yazılım ekibi | Sensörler, kalibrasyon, tetik, tepe ivme ve vektörü, açısal hız, darbe süresi, Δv, HIC15, seviye; ESP-NOW ve USB iletimi |
-| **Bu depo (benim alt sistemim)** | Paketleri okumak; kartın sonucunu ekranda ve risk renginde göstermek; seans özeti, iletişim sayaçları ve CSV kaydı; ham veriden **bağımsız doğrulama hesabı** (Python) ve kartla farkı göstermek |
-| **Bu depo — MATLAB** | Aynı CSV'den üçüncü bağımsız hesap (çapraz doğrulama); filtre ve eşik karşılaştırması; rapor grafikleri |
+| USB seri porttan paketleri okuma, olayları birleştirme, kayıp/CRC sayaçları (sözleşmenin tüketici tarafı) | yapıldı |
+| Simülatör: gerçek kartla aynı baytları üreten sahte veri kaynağı | yapıldı |
+| Tepe ivme, yön, Δv, darbe süresi ve HIC15'in ham veriden **bağımsız** hesabı; kartın sonucuyla karşılaştırma | yapıldı |
+| Örnekleme hızı ve sensör kırpılmasının HIC15'e etkisinin analizi | yapıldı |
+| Uyarı arayüzü: Yeşil/Sarı/Kırmızı gösterge, son darbe grafiği, seans özeti, etiketleme, CSV kaydı | yapıldı |
+| Ham verinin filtrelenmesi | planlandı |
+| **Darbe / darbe değil ayrımı** (kart ayrım yapmıyor; eşiği aşan her olayı gönderiyor) | planlandı |
+| MATLAB: çevrimdışı analiz, filtre/eşik karşılaştırması, HIC15 çapraz doğrulaması | planlandı |
 
-Alt sistem sınırı: **alıcı kartın USB'den verdiği çerçeve.** Çerçevenin ve paketlerin biçimi
-aşağıdaki *Arayüz sözleşmesi*nde tanımlıdır.
+### Kapsam dışı — arkadaşımın alt sistemi (donanım ve gömülü yazılım)
+
+- Sensörler (ADXL375, MPU6050), okunmaları ve kalibrasyonu
+- Tetik, olay penceresi ve kartın kendi hesapları (tepe, HIC15, Δv, seviye)
+- ESP-NOW iletimi, alıcı kart ve USB çerçevesinin üretilmesi
+- Pil, kutu ve kaska montaj
+
+Bu depo arkadaşımın kodunu içermez; iki alt sistem yalnızca aşağıdaki
+*Arayüz sözleşmesi* üzerinden birleşir.
+
+### Kimsenin kapsamında olmayan
+
+- Tıbbi teşhis. Sistem beyin sarsıntısı tanısı koymaz; darbe şiddetine dayalı risk göstergesidir.
 
 ## Başarı ölçütleri
 
-Hedef değerler danışmanla netleştirilecek (`___`).
+Hedef değerler danışmanla belirlenecek (`___`).
 
 | Ölçüt | Nasıl ölçülür | Hedef |
 |---|---|---|
-| Doğrulama hesabının doğruluğu | Sonucu elle hesaplanabilen sentetik darbelerde (sabit, yarım sinüs, üçgen) Python'un HIC15 ve tepe ivme sonucunun analitik değerden yüzde farkı | en çok % ___ |
+| **Darbe tespit duyarlılığı** | Etiketli test kümesinde (bkz. *Etiketli test kümesi*) "darbe" etiketli olayların yazılım tarafından darbe olarak sınıflandırılma oranı: DP / (DP + YN) | en az % ___ |
+| **Yanlış alarm oranı** | Aynı kümede "darbe değil" etiketli olayların yanlışlıkla darbe sayılma oranı: YP / (YP + DN) | en çok % ___ |
+| **Uyarı gecikmesi** | Olayın son paketinin bilgisayara ulaştığı an ile risk renginin ekranda güncellendiği an arasındaki süre; kod içi zaman damgasıyla, en az ___ olay üzerinden ortanca ve en kötü değer | en çok ___ ms |
+
+DP: doğru pozitif, YN: yanlış negatif, YP: yanlış pozitif, DN: doğru negatif.
+Kaskta darbenin olduğu an ile ekran arasındaki **uçtan uca** gecikme, arkadaşımın ölçeceği
+kablosuz iletim süresiyle birlikte raporlanır.
+
+### Ek doğrulama ölçütleri
+
+| Ölçüt | Nasıl ölçülür | Hedef |
+|---|---|---|
+| Bağımsız hesabın doğruluğu | Sonucu elle hesaplanabilen sentetik darbelerde (dikdörtgen, yarım sinüs, üçgen) HIC15'in analitik değerden farkı (`tests/test_hesap.py`) | en çok % ___ |
 | Python–MATLAB uyumu | Aynı CSV kayıtlarında iki bağımsız uygulamanın HIC15 ve tepe ivme farkı | en çok % ___ |
-| Kart–bilgisayar uyumu | Gerçek kayıtlarda kartın HIC15/tepe sonucu ile bağımsız hesap arasındaki fark (raporlanır ve nedeni açıklanır) | en çok % ___ |
-| İletişim güvenilirliği | Seans boyunca CRC hatası, kayıp parça ve eksik olay sayaçları | eksik olay oranı en çok % ___ |
-| Gösterim gecikmesi | Son paketin bilgisayara ulaşması ile ekranda risk renginin güncellenmesi arasındaki süre (kod içi zaman damgası) | en çok ___ ms |
+| Kart–bilgisayar uyumu | Kartın HIC15/tepe sonucu ile bağımsız hesap arasındaki fark; nedeni açıklanır | en çok % ___ |
+| İletişim güvenilirliği | Seans boyunca eksik olay oranı (sayaçlar arayüzde ve `_seans.csv`'de) | en çok % ___ |
 
 ### Bilinen sınırlamalar
 

@@ -1,0 +1,19 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# MATLAB otomatik yedekleri
+*.asv
+
+# Gerçek seans kayıtları varsayılan olarak depoya gönderilmez
+data/kayitlar/*
+!data/kayitlar/.gitkeep
+
+# Sporcu kod-isim eşleşmesi ASLA depoya girmez
+**/sporcu_eslesme*
+
+# Windows
+Thumbs.db
+desktop.ini

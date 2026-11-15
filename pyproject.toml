@@ -1,0 +1,9 @@
+[project]
+name = "darbe-olcer"
+version = "0.1.0"
+description = "Dövüş sporları darbe ölçer - sinyal işleme ve karar destek alt sistemi"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

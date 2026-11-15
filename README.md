@@ -435,7 +435,6 @@ C:\darbe_olcer
 ├─ src/darbe/           Python kaynak kodu (protokol, hesap, simülatör, arayüz)
 ├─ tests/               otomatik testler (pytest)
 ├─ araclar/             tek seferlik analiz betikleri (ör. örnekleme/kırpılma analizi)
-├─ matlab/              .m betikleri: CSV okuma, bağımsız HIC15, karşılaştırma, grafikler
 ├─ data/ornek/          depoda paylaşılan örnek kayıtlar: 20 olaylık etiketli sentetik küme
 │                       (S00_..._olaylar/ham/seans/tanim.csv), örnekleme analizi sonuçları
 ├─ data/kayitlar/       gerçek seans kayıtları (varsayılan olarak depoya gönderilmez)
@@ -465,16 +464,17 @@ Gerçek cihaza geçiş tek ayardır: `python araclar\simulator_dene.py --port CO
 ## Yapılacaklar
 
 - [x] Ortam kurulumu (Python 3.12, sanal ortam, Git)
-- [x] Paket ve CSV sözleşmesi v1 (taslak) + protokol kodu ve testleri
-- [x] Teyit listesi donanım ekibine soruldu, cevaplara göre sözleşme güncellendi
-- [x] Ortak paket sözleşmesi v1 (ÖZET 29 B, DURUM 12 B, HAM 0x03)
-- [x] Açık sorular cevaplandı: Δv tanımı, sabit kalibrasyon, µs zaman, HIC 0,1 ölçek
-- [ ] Kalan boşluklar: kalibrasyon sabitleri, Δv aralık eşiği, eksenler, seviye eşikleri (docs/donanim_kararlari.md)
-- [x] Bağımsız doğrulama çekirdeği: HIC15, tepe ivme, yön, Δv, darbe süresi + analitik testler
+- [x] Ortak paket sözleşmesi v1 (ÖZET 29 B, DURUM 12 B, HAM 0x03) + protokol kodu ve testleri
+- [x] Bağımsız hesap: HIC15, tepe ivme, yön, Δv, darbe süresi + analitik testler
 - [x] Örnekleme hızı ve kırpılma hatasının sayısal analizi (docs/analiz_ornekleme.md)
-- [x] Simülatör (gerçek cihazla aynı baytları üreten) + seri port kaynağı + işleme hattı
+- [x] Simülatör (gerçek kartla aynı baytlar, darbe olmayan olaylar dahil) + seri port kaynağı
 - [x] Arayüz: risk göstergesi, son darbe grafiği, seans özeti, sayaçlar, CSV kaydı, etiketleme
-- [ ] Gösterim gecikmesinin ölçülmesi (başarı ölçütü)
+- [x] 20 örneklik etiketli sentetik test kümesi
+- [ ] Ham verinin filtrelenmesi
+- [ ] Darbe / darbe değil ayrımı ve etiketli kümede duyarlılık / yanlış alarm ölçümü
+- [ ] Uyarı gecikmesinin ölçülmesi
 - [ ] MATLAB: CSV okuma, bağımsız HIC15, çapraz doğrulama, filtre/eşik karşılaştırması
-- [ ] İlk gerçek örnek kayıt ve seri porta geçiş
+- [ ] Başarı ölçütlerinin hedef değerleri (danışmanla)
+- [ ] Donanımdan beklenenler: kalibrasyon sabitleri, eksen yönleri, çerçeveli USB çıkışı
+- [ ] İlk gerçek kayıt, seri porta geçiş ve gerçek etiketli küme
 - [ ] Risk eşikleri için kaynaklı literatür taraması (danışmanla karar)

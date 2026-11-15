@@ -5,7 +5,7 @@ henüz açık olan soruları tutar.
 
 ## Kesinleşenler (protokol sürümü 1)
 
-| Konu | Karar | Kaynak |
+| Konu | Karar | Kaynak (donanım ekibinin teyit cevapları, madde no) |
 |---|---|---|
 | Paket başı | 1. bayt `protokol_surumu`, 2. bayt `paket_tipi` | donanım ekibi |
 | ÖZET | 0x01, 29 bayt, donanım README'si 5. bölüm | donanım ekibi |
@@ -15,14 +15,14 @@ henüz açık olan soruları tutar.
 | USB çerçevesi | AA 55 + uzunluk + yük + CRC-16/CCITT-FALSE; yerleşik USB (CDC), 115200 | yazılım önerisi, kabul |
 | Değişiklik kuralı | yeni alan paketin sonuna eklenir, sürüm artar | donanım ekibi |
 | Bayt sırası | little-endian, packed | ortak |
-| ADXL375 | 3200 Hz, ±200 g; HAM'de kalibre edilmemiş, ÖZET kalibre değerlerle | teyit cevabı 1–2 |
-| MPU6050 jiro | ±2000 °/s, 1/16,4; ADXL ile senkron değil, son değer tutulur | teyit cevabı 1, 3 |
-| Pencere | 160 + 320 = 480 örnek (50 + 100 ms), 26 parça | teyit cevabı 5, mevcut kart kodu |
-| Tetik | bileşke, ofset düzeltilmiş, yerçekimi dahil; 10 g (doğrulanmalı) | teyit cevabı 6 |
-| Darbe/hareket | kart sınıflandırma yapmaz; eşiği aşan her şey olay | teyit cevabı 21 |
-| Kart hesapları | bileşke, g, yerçekimi çıkarılmaz; HIC15 her örnek adımında, ≤ 15 ms; ek filtre yok | teyit cevabı 16–18 |
-| Yön | kart tepe vektörünü gönderir, açıları bilgisayar hesaplar | teyit cevabı 19 |
-| Filtre | kartta yok; filtre karşılaştırması bilgisayarda/MATLAB'da | teyit cevabı 18 |
+| ADXL375 | 3200 Hz, ±200 g; HAM'de kalibre edilmemiş, ÖZET kalibre değerlerle | madde 1–2 |
+| MPU6050 jiro | ±2000 °/s, 1/16,4; ADXL ile senkron değil, son değer tutulur | madde 1, 3 |
+| Pencere | 160 + 320 = 480 örnek (50 + 100 ms), 26 parça | madde 5, mevcut kart kodu |
+| Tetik | bileşke, ofset düzeltilmiş, yerçekimi dahil; 10 g (doğrulanmalı) | madde 6 |
+| Darbe/hareket | kart sınıflandırma yapmaz; eşiği aşan her şey olay | madde 21 |
+| Kart hesapları | bileşke, g, yerçekimi çıkarılmaz; HIC15 her örnek adımında, ≤ 15 ms; ek filtre yok | madde 16–18 |
+| Yön | kart tepe vektörünü gönderir, açıları bilgisayar hesaplar | madde 19 |
+| Filtre | kartta yok; filtre karşılaştırması bilgisayarda/MATLAB'da | madde 18 |
 | Doyma | ADXL375 doyduysa olay en az Sarı gösterilir | donanım README'si |
 
 ## İkinci tur kararlar (yazılım ekibinin açık sorularına cevaplar)

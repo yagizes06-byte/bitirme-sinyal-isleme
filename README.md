@@ -239,6 +239,7 @@ C:\darbe_olcer
 ├─ pyproject.toml       proje ve test ayarları
 ├─ src/darbe/           Python kaynak kodu (protokol, hesap, simülatör, arayüz)
 ├─ tests/               otomatik testler (pytest)
+├─ araclar/             tek seferlik analiz betikleri (ör. örnekleme/kırpılma analizi)
 ├─ matlab/              .m betikleri: CSV okuma, bağımsız HIC15, karşılaştırma, grafikler
 ├─ data/ornek/          depoda paylaşılan örnek/sentetik kayıtlar
 ├─ data/kayitlar/       gerçek seans kayıtları (varsayılan olarak depoya gönderilmez)
@@ -253,6 +254,7 @@ py -3.12 -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 pytest -v
+python araclar\analiz_ornekleme.py
 ```
 
 ## Yapılacaklar
@@ -263,8 +265,8 @@ pytest -v
 - [x] Ortak paket sözleşmesi v1 (ÖZET 29 B, DURUM 12 B, HAM 0x03)
 - [x] Açık sorular cevaplandı: Δv tanımı, sabit kalibrasyon, µs zaman, HIC 0,1 ölçek
 - [ ] Kalan boşluklar: kalibrasyon sabitleri, Δv aralık eşiği, eksenler, seviye eşikleri (docs/donanim_kararlari.md)
-- [ ] Bağımsız doğrulama çekirdeği: HIC15, tepe ivme, yön + analitik testler
-- [ ] Örnekleme hızı ve kırpılma hatasının sayısal analizi
+- [x] Bağımsız doğrulama çekirdeği: HIC15, tepe ivme, yön, Δv, darbe süresi + analitik testler
+- [x] Örnekleme hızı ve kırpılma hatasının sayısal analizi (docs/analiz_ornekleme.md)
 - [ ] Simülatör (gerçek cihazla aynı baytları üreten)
 - [ ] Arayüz: risk göstergesi, son darbe grafiği, seans özeti, sayaçlar, CSV kaydı
 - [ ] MATLAB: CSV okuma, bağımsız HIC15, çapraz doğrulama, filtre/eşik karşılaştırması

@@ -41,8 +41,12 @@ henüz açık olan soruları tutar.
 ## Hâlâ açık
 
 1. **Δv aralık eşiği (___ g):** ilk gerçek/test kayıtlarına bakarak birlikte seçilecek.
-2. **Δv integral yöntemi:** dikdörtgen (örnek toplamı × Δt) mı, yamuk mu? Kart ve bilgisayar
-   aynı yöntemi kullanmalı. Öneri: kartta en basit olan **dikdörtgen**.
+2. **Δv ve HIC15 integral yöntemi:** dikdörtgen (örnek toplamı × Δt) mı, yamuk mu? Kart ve
+   bilgisayar aynı yöntemi kullanmalı. Öneri: kartta en basit olan **dikdörtgen**, şu kuralla:
+   `C[0] = 0`, `C[k] = C[k−1] + a[k−1] × Δt`; [i, j] aralığının integrali `C[j] − C[i]`,
+   süresi `(j − i) × Δt`. (HIC15 için "kümülatif toplam" bunu mu kastediyor?)
+   Analiz (docs/analiz_ornekleme.md): 3200 Hz'de bu yöntemin HIC15 hatası yarım sinüs ≥ 4 ms
+   darbelerde ±%0,4 içinde.
 3. **Test türü:** Teyit cevaplarında "düşürme testi" geçiyor. Proje tanımında "sporcu düşürme
    veya sarkaç testi yok" yazıyor. Kastedilen kaskın/sensörün düşürülmesi mi? Hocayla netleşmeli;
    doğrulama planı buna göre yazılacak.

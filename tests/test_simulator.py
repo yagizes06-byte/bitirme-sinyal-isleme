@@ -117,3 +117,15 @@ def test_ayni_tohum_ayni_baytlar():
     a = SimulatorKaynak(tohum=7, kayip_orani=0.01)
     b = SimulatorKaynak(tohum=7, kayip_orani=0.01)
     assert a.oku(20.0) == b.oku(20.0)
+
+
+def test_tetiklemeyen_olay_cokertmez():
+    # Gerçek kart eşiği aşmayan olayı göndermez; simülatör de hata vermeden boş döner
+    k = SimulatorKaynak()
+    assert k.darbe_ekle(DarbeTanimi("yarim_sinus", 5.0, 0.008, (1, 0, 0)), 1.0) == b""
+    assert k.tetiklemeyen == 1
+
+
+def test_uzun_rastgele_seans_cokmez():
+    hat, sonuc = calistir(SimulatorKaynak(tohum=99, ortalama_aralik_s=0.5), 300.0)
+    assert len(sonuc) > 100

@@ -43,8 +43,10 @@ KAYIT_KLASORU = KOK / "data" / "kayitlar"
 SEVIYE_AD = {0: "YEŞİL", 1: "SARI", 2: "KIRMIZI"}
 SEVIYE_RENK = {0: "#2e7d32", 1: "#f9a825", 2: "#c62828"}
 GRI = "#616161"
-SUTUNLAR = ["Olay", "Saat", "Raunt", "Seviye", "Tepe (g)", "HIC15 kart", "HIC15 Python",
-            "Fark %", "Δv (m/s)", "Durum", "Etiket"]
+SUTUNLAR = ["Olay", "Saat", "Raunt", "Seviye", "Ayrım", "Tepe (g)", "HIC15 kart",
+            "HIC15 Python", "Fark %", "Δv (m/s)", "Durum", "Etiket"]
+AYRIM_AD = {"darbe": "Darbe", "serbest_dusme": "Değil: düşme", "cok_kisa": "Değil: çok kısa",
+            "salinim": "Değil: salınım", "uzun_yumusak": "Değil: baş hareketi"}
 PERIYOT_MS = 30
 
 
@@ -127,7 +129,7 @@ class AnaPencere(QMainWindow):
         d.addWidget(self.lamba_alt)
         izgara = QGridLayout()
         self.deger: dict[str, QLabel] = {}
-        satirlar = [("tepe", "Tepe ivme"), ("hic", "HIC15 (kart)"), ("yon", "Yön (azimut / yükseklik)"),
+        satirlar = [("ayrim", "Yazılımın ayrımı"), ("tepe", "Tepe ivme"), ("hic", "HIC15 (kart)"), ("yon", "Yön (azimut / yükseklik)"),
                     ("dv", "Δv"), ("jiro", "Tepe açısal hız"), ("sure", "Darbe süresi"),
                     ("py_hic", "HIC15 (Python doğrulama)"), ("fark", "Kart − Python farkı")]
         for i, (anahtar, ad) in enumerate(satirlar):
@@ -345,8 +347,12 @@ class AnaPencere(QMainWindow):
                 uyarilar.append("Kartın tamponu taştı: bu olaydan önce/sonra veri kaybolmuş olabilir.")
             if o.dusuk_pil:
                 uyarilar.append("Kaskın pili düşük.")
+        if s.ayrim is not None and not s.ayrim.darbe_mi:
+            uyarilar.insert(0, "Yazılım bu olayı DARBE DEĞİL olarak sınıflandırdı ("
+                            + s.ayrim.gerekce + "). Renk kartın seviyesidir; karar sağlık ekibinindir.")
         az_yk = s.kart_yon_der
         d = self.deger
+        d["ayrim"].setText(AYRIM_AD.get(s.ayrim.kural, s.ayrim.kural) if s.ayrim else "-")
         d["tepe"].setText(f"{_s(o.tepe_ivme_g if o else None)} g")
         d["hic"].setText(_s(o.hic15 if o else None))
         d["yon"].setText(f"{_s(az_yk[0], 0)}° / {_s(az_yk[1], 0)}°" if az_yk else "-")
@@ -374,6 +380,7 @@ class AnaPencere(QMainWindow):
         s, o, p = k.sonuc, k.sonuc.ozet, k.sonuc.py
         hucreler = [str(s.olay_no), k.pc_zamani.strftime("%H:%M:%S"), str(k.raunt),
                     SEVIYE_AD.get(o.seviye, "?").capitalize() if o else "-",
+                    AYRIM_AD.get(s.ayrim.kural, s.ayrim.kural) if s.ayrim else "-",
                     _s(o.tepe_ivme_g if o else None), _s(o.hic15 if o else None),
                     _s(p.hic15 if p else None), _s(s.fark_hic_yuzde, 2),
                     _s(o.delta_v_mm_s / 1000 if o else None, 2), s.durum, k.etiket]
@@ -431,11 +438,12 @@ class AnaPencere(QMainWindow):
         o = se.ozet()
         self.ozet_etiket.setText(
             f"Süre: {int(t) // 60:02d}:{int(t) % 60:02d}   Raunt: {se.raunt}\n"
-            f"Darbe sayısı: {o['olay_sayisi']}\n"
+            f"Olay sayısı: {o['olay_sayisi']}  (yazılıma göre darbe {o['ayrim_darbe']}, "
+            f"darbe değil {o['ayrim_darbe_degil']})\n"
             f"Yeşil {o['yesil']}  |  Sarı {o['sari']}  |  Kırmızı {o['kirmizi']}\n"
             f"En yüksek tepe: {_s(o['maks_tepe_g'])} g\n"
             f"En yüksek HIC15: {_s(o['maks_hic15'])}\n"
-            f"Doğrulama farkı (HIC15): ort. {_s(o['ort_mutlak_fark_hic_yuzde'], 2)} %, "
+            f"Doğrulama farkı (HIC15, darbelerde): ort. {_s(o['ort_mutlak_fark_hic_yuzde'], 2)} %, "
             f"en çok {_s(o['maks_mutlak_fark_hic_yuzde'], 2)} %")
         if self._son is not None:
             self.lamba_alt.setText(f"Olay {self._son.sonuc.olay_no} · {int(t - self._son_s)} s önce")

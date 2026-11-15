@@ -258,6 +258,7 @@ class SimulatorKaynak:
     hareket_orani: float = 0.2              # rastgele olayların ne kadarı "darbe değil" olsun
     kal: Kalibrasyon = Kalibrasyon()
     gercekler: dict[int, DarbeTanimi] = field(default_factory=dict)   # sira_no -> gerçek darbe
+    tetiklemeyen: int = 0                   # eşiği aşmadığı için gönderilmeyen olay sayısı
 
     def __post_init__(self):
         self.kart = KartSimulatoru(self.tohum, self.kal)
@@ -277,8 +278,14 @@ class SimulatorKaynak:
                         if self._rng.random() >= self.kayip_orani)
 
     def darbe_ekle(self, d: DarbeTanimi, simdi_s: float) -> bytes:
-        """Hemen bir darbe üretir (arayüzdeki 'test darbesi' düğmesi için)."""
-        paketler = self.kart.olay_paketleri(d, simdi_s)
+        """Hemen bir darbe üretir (arayüzdeki 'test darbesi' düğmesi için).
+
+        Olay tetik eşiğini aşmıyorsa gerçek kart gibi hiçbir şey göndermez (boş bayt)."""
+        try:
+            paketler = self.kart.olay_paketleri(d, simdi_s)
+        except ValueError:
+            self.tetiklemeyen += 1
+            return b""
         self.gercekler[paketler[0].sira_no] = d
         return self._gonder(paketler)
 

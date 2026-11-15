@@ -5,6 +5,10 @@ isleme.py - Bayt akışından değerlendirilmiş olaylara giden hat (arayüz ve 
 
 OlaySonucu, kartın gönderdiği sonuçları (ÖZET) ve tamam olaylarda ham veriden yapılan bağımsız
 Python hesabını yan yana tutar; fark_* alanları (kart - Python) / Python x 100'dür.
+
+Bağımsız hesap, kartla AYNI tanımı ve aynı integral yöntemini (dikdörtgen, README > Hesap
+yöntemi) kullanır; böylece fark yöntem farkını değil, kartın kodundaki hatayı gösterir.
+Yamuk yöntem yalnızca örnekleme analizinde (araclar/analiz_ornekleme.py) kullanılır.
 """
 
 from __future__ import annotations
@@ -15,6 +19,7 @@ from typing import Optional
 import numpy as np
 
 from . import hesap
+from .ayrim import AyrimEsikleri, AyrimSonucu, siniflandir
 from .hesap import Kalibrasyon
 from .protokol import CerceveAyristirici, Olay, OlayBirlestirici, Ozet
 
@@ -43,6 +48,7 @@ class OlaySonucu:
     w_dps: Optional[np.ndarray] = None
     ham: Optional[np.ndarray] = None     # N x 6 LSB
     eksik_parcalar: tuple[int, ...] = ()
+    ayrim: Optional[AyrimSonucu] = None  # darbe / darbe değil (yalnız tamam olayda)
 
     @staticmethod
     def _fark(kart: float, py: float) -> Optional[float]:
@@ -68,7 +74,8 @@ class OlaySonucu:
 
 
 def olayi_degerlendir(olay: Olay, kal: Kalibrasyon = Kalibrasyon(),
-                      hic_yontem: str = "yamuk") -> OlaySonucu:
+                      hic_yontem: str = "dikdortgen",
+                      ayrim_esik: AyrimEsikleri = AyrimEsikleri()) -> OlaySonucu:
     if not olay.tamam_mi:
         return OlaySonucu(olay.olay_no, "eksik", olay.ozet, None,
                           eksik_parcalar=tuple(olay.eksik_parcalar))
@@ -84,7 +91,8 @@ def olayi_degerlendir(olay: Olay, kal: Kalibrasyon = Kalibrasyon(),
                  darbe_suresi_ms=hesap.darbe_suresi_s(a) * 1000.0,
                  delta_v_m_s=hesap.delta_v(a).delta_v_m_s,
                  hic15=h.hic, hic_bas_ms=h.t1_s * 1000.0, hic_bit_ms=h.t2_s * 1000.0)
-    return OlaySonucu(olay.olay_no, "tamam", olay.ozet, py, a, w, ham)
+    return OlaySonucu(olay.olay_no, "tamam", olay.ozet, py, a, w, ham,
+                      ayrim=siniflandir(a, ayrim_esik))
 
 
 class Hat:

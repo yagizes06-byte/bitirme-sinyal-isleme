@@ -75,13 +75,19 @@ class Seans:
     def ozet(self) -> dict:
         """Seans özeti. Şiddet değerleri KARTIN sonuçlarıdır (ekranda gösterilenle aynı)."""
         ozetli = [k for k in self.olaylar if k.sonuc.ozet is not None]
+        # doğrulama farkı yalnız yazılımın DARBE dediği olaylarda (çok küçük HIC'li darbe olmayan
+        # olaylarda yüzde fark anlamsız büyür)
         farklar = [abs(k.sonuc.fark_hic_yuzde) for k in self.olaylar
-                   if k.sonuc.fark_hic_yuzde is not None]
+                   if k.sonuc.fark_hic_yuzde is not None and k.sonuc.ayrim is not None
+                   and k.sonuc.ayrim.darbe_mi]
         sev = [k.sonuc.ozet.seviye for k in ozetli]
         return {
             "olay_sayisi": len(self.olaylar),
             "yesil": sev.count(0), "sari": sev.count(1), "kirmizi": sev.count(2),
             "eksik": sum(1 for k in self.olaylar if k.sonuc.durum == "eksik"),
+            "ayrim_darbe": sum(1 for k in self.olaylar if k.sonuc.ayrim and k.sonuc.ayrim.darbe_mi),
+            "ayrim_darbe_degil": sum(1 for k in self.olaylar
+                                     if k.sonuc.ayrim and not k.sonuc.ayrim.darbe_mi),
             "maks_tepe_g": max((k.sonuc.ozet.tepe_ivme_g for k in ozetli), default=None),
             "maks_hic15": max((k.sonuc.ozet.hic15 for k in ozetli), default=None),
             "ort_mutlak_fark_hic_yuzde": sum(farklar) / len(farklar) if farklar else None,

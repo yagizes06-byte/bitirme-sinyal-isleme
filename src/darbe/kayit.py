@@ -33,7 +33,7 @@ OLAY_SUTUNLARI = [
     "kart_hic15", "kart_seviye", "kart_bayraklar", "pil_mv",
     "py_tepe_g", "py_vx_g", "py_vy_g", "py_vz_g", "py_azimut_der", "py_yukseklik_der",
     "py_tepe_jiro_dps", "py_darbe_suresi_ms", "py_delta_v_m_s", "py_hic15", "py_hic_bas_ms",
-    "py_hic_bit_ms", "py_seviye", "fark_tepe_yuzde", "fark_hic_yuzde", "fark_delta_v_yuzde",
+    "py_hic_bit_ms", "py_seviye", "py_darbe_mi", "py_ayrim_kurali", "fark_tepe_yuzde", "fark_hic_yuzde", "fark_delta_v_yuzde",
     "etiket", "not",
 ]
 HAM_SUTUNLARI = ["olay_no", "ornek_no", "t_ms", "ax_lsb", "ay_lsb", "az_lsb", "gx_lsb",
@@ -84,6 +84,8 @@ def olay_satiri(s: OlaySonucu, pc_zamani: datetime, raunt: int) -> dict:
                  py_hic15=p.hic15, py_hic_bas_ms=p.hic_bas_ms, py_hic_bit_ms=p.hic_bit_ms,
                  fark_tepe_yuzde=s.fark_tepe_yuzde, fark_hic_yuzde=s.fark_hic_yuzde,
                  fark_delta_v_yuzde=s.fark_delta_v_yuzde)
+    if s.ayrim is not None:
+        d.update(py_darbe_mi=int(s.ayrim.darbe_mi), py_ayrim_kurali=s.ayrim.kural)
     return d                      # py_seviye: eşikler belirlenene kadar boş
 
 
@@ -164,3 +166,29 @@ class SeansKaydi:
         b.update(ek_bilgi)
         self._yaz(self.seans_yolu, [["anahtar", "deger"]] +
                   [[k, tr(v, 6)] for k, v in b.items()], "w")
+
+
+# ---------------------------------------------------------------------------
+# Okuma (değerlendirme betikleri ve testler için; MATLAB da aynı biçimi okur)
+# ---------------------------------------------------------------------------
+def csv_oku(yol: Path | str) -> list[dict[str, str]]:
+    """Kayıt dosyasını satır sözlükleri olarak okur (değerler metin)."""
+    metin = Path(yol).read_bytes().decode("utf-8-sig")
+    satirlar = [r.split(";") for r in metin.split("\r\n") if r]
+    basliklar = satirlar[0]
+    return [dict(zip(basliklar, r)) for r in satirlar[1:]]
+
+
+def sayi(metin: str) -> Optional[float]:
+    """'1,25' -> 1.25 ; boş -> None"""
+    return float(metin.replace(",", ".")) if metin not in ("", None) else None
+
+
+def ham_ivme_oku(yol: Path | str):
+    """_ham.csv -> {olay_no: (N x 3) ivme g}"""
+    import numpy as np
+    olaylar: dict[int, list] = {}
+    for r in csv_oku(yol):
+        olaylar.setdefault(int(r["olay_no"]), []).append(
+            [sayi(r["ax_g"]), sayi(r["ay_g"]), sayi(r["az_g"])])
+    return {no: np.asarray(v) for no, v in olaylar.items()}

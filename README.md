@@ -38,9 +38,9 @@ Başlatmak için: `python calistir.py`.
 | Tepe ivme, yön, Δv, darbe süresi ve HIC15'in ham veriden **bağımsız** hesabı; kartın sonucuyla karşılaştırma | yapıldı |
 | Örnekleme hızı ve sensör kırpılmasının HIC15'e etkisinin analizi | yapıldı |
 | Uyarı arayüzü: Yeşil/Sarı/Kırmızı gösterge, son darbe grafiği, seans özeti, etiketleme, CSV kaydı | yapıldı |
-| Ham verinin filtrelenmesi | planlandı |
 | Simülatörde darbe olmayan olaylar ve 20 örneklik etiketli test kümesi | yapıldı |
-| **Darbe / darbe değil ayrımı** (kart ayrım yapmıyor; eşiği aşan her olayı gönderiyor) | planlandı |
+| Ham verinin filtrelenmesi (sıfır fazlı alçak geçiren; kesme frekansı seçimi MATLAB'da) | ilk sürüm |
+| **Darbe / darbe değil ayrımı** (kart ayrım yapmıyor; eşiği aşan her olayı gönderiyor) | ilk sürüm, yalnız simülatörde sınandı |
 | MATLAB: çevrimdışı analiz, filtre/eşik karşılaştırması, HIC15 çapraz doğrulaması | planlandı |
 
 ### Kapsam dışı — arkadaşımın alt sistemi (donanım ve gömülü yazılım)
@@ -219,6 +219,7 @@ Sarı** gösterilir. Azimut/yükseklik açısını bilgisayar tepe vektöründen
 | HIC15 | bileşke ivmeden (g), t₂ − t₁ ≤ 15 ms olan tüm aralıklarda `(t₂−t₁)·[ort. ivme]^2,5` değerinin en büyüğü, her örnek adımında; pakette 0,1 çözünürlükle |
 | Darbe süresi | bileşkenin tetik eşiğinin üstünde kaldığı süre |
 | Δv | `Δv = | ∫ (a(t) − a_ref) dt |`, **ivme vektörünün** integrali (bileşkenin değil), sonuç vektörün büyüklüğü, mm/s. `a_ref` = tetikten önceki 160 örneğin ortalama vektörü (ofset + duruştaki yerçekimi). Aralık: tetik etrafında `|a − a_ref|` değerinin ___ g üstünde kaldığı kesintisiz bölge. İntegral yöntemi (dikdörtgen/yamuk): ___ |
+| İntegral yöntemi | **dikdörtgen** (kümülatif toplam): `C[k] = C[k−1] + a[k−1]·Δt`; bilgisayarın kartla karşılaştırma hesabı da bunu kullanır. Yamuk yöntem yalnız örnekleme analizinde (analitik değere göre doğruluk için) kullanılır. Kartın kuralı teyit edilecek |
 | Filtre | kartta yok (yalnız sensörün iç filtresi, ≈ ODR/2 = 1600 Hz). Kartla karşılaştırma **filtresiz**; filtreli hesaplar yalnız bilgisayarda/MATLAB'da analiz amaçlı |
 | Seviye | eşikler ___; ADXL375 doyduysa en az Sarı. Bilgisayar aynı kuralla yeniden hesaplayıp karşılaştırır |
 
@@ -332,6 +333,7 @@ iletişim sayaçları (CRC hatası, kayıp `sira_no`, eksik olay).
 | `kart_azimut_der`, `kart_yukseklik_der` | ° | kartın vektöründen bilgisayarda hesaplanan yön |
 | `kart_tepe_jiro_dps`, `kart_darbe_suresi_ms`, `kart_delta_v_m_s`, `kart_hic15` | | `kart_hic15` 0,1 çözünürlüklü |
 | `kart_seviye`, `kart_bayraklar`, `pil_mv` | | |
+| `py_darbe_mi`, `py_ayrim_kurali` | — | yazılımın ayrımı: 1 darbe / 0 değil; kararı veren kural (bkz. *Darbe ayrımı*) |
 | `py_tepe_g`, `py_vx_g`, `py_vy_g`, `py_vz_g`, `py_azimut_der`, `py_yukseklik_der`, `py_tepe_jiro_dps`, `py_darbe_suresi_ms`, `py_delta_v_m_s`, `py_hic15`, `py_hic_bas_ms`, `py_hic_bit_ms`, `py_seviye` | | Python bağımsız hesabı (eksik olayda boş) |
 | `fark_tepe_yuzde`, `fark_hic_yuzde`, `fark_delta_v_yuzde` | % | (kart − Python) / Python × 100 |
 | `etiket` | — | elle: `darbe` / `darbe_degil` / boş (doğrulama için) |
@@ -348,6 +350,49 @@ iletişim sayaçları (CRC hatası, kayıp `sira_no`, eksik olay).
 | `gx_dps`, `gy_dps`, `gz_dps` | °/s | |
 
 ---
+
+## Darbe ayrımı
+
+Kart, bileşke ivme 10 g'yi aşan **her** olayı gönderir. Gerçek darbeyi diğer olaylardan
+(sensöre dokunma, kaskın düşmesi, sert baş hareketi) ayırmak bu alt sistemin işidir
+(`src/darbe/ayrim.py`).
+
+**Yöntem: kural tabanlı.** Her olayın ham ivmesi önce sıfır fazlı alçak geçiren filtreden
+geçirilir (`src/darbe/filtre.py`, ilk değer 1000 Hz). Sonra birkaç fiziksel özellik hesaplanır
+ve kurallara sırayla bakılır; ilk tutan kural kararı verir:
+
+| Sıra | Kural | Özellik | İlk eşik | Neyi yakalar |
+|---|---|---|---|---|
+| 1 | Serbest düşme | tetik öncesi ortalama ivmenin büyüklüğü | < 0,5 g | kask başta değil, düşüyor |
+| 2 | Çok kısa | ana tepenin yarı-yükseklik genişliği | < 1,5 ms | sensöre vurma, sert yüzeye çarpma |
+| 3 | Salınım | yön tutarlılığı = \|∫(a − a_ref) dt\| / ∫\|a − a_ref\| dt | < 0,5 | ileri-geri titreşim |
+| 4 | Uzun ve yumuşak | ana tepenin yarı-yükseklik genişliği | > 25 ms | sert baş hareketi |
+| 5 | — | hiçbiri tutmadı | — | **darbe** |
+
+Neden makine öğrenmesi değil: 20 örneklik etiketli kümeyle model eğitmek anlamsızdır. Kurallar
+ise her kararın gerekçesini tek cümleyle verir (arayüzde ve CSV'de görünür); bir karar destek
+sisteminde sağlık ekibi kararın nedenini görebilmelidir.
+
+**Ayrımın sonucu nasıl kullanılıyor:** Risk rengi yine kartın seviyesidir. Yazılım bir olayı
+"darbe değil" diye sınıflandırırsa arayüz bunu gerekçesiyle birlikte açıkça yazar, ama rengi
+gizlemez: yanlış bir "darbe değil" kararı gerçek bir darbeyi saklamamalıdır. Son karar sağlık
+ekibinindir.
+
+**Sonuçlar** (`python araclar\ayrim_degerlendir.py` → [docs/ayrim_sonuclari.md](docs/ayrim_sonuclari.md)):
+20 olaylık etiketli kümede ve 399 olaylık rastgele simülatör kümesinde duyarlılık %100, yanlış
+alarm %0.
+
+**Bu sonuç ne anlama geliyor, ne anlama gelmiyor:** Simülatördeki darbe olmayan olayları
+darbeden ayrışacak biçimde ben tasarladım. Bu yüzden %100 / %0 yalnızca **kodun tüm olay
+türlerinde doğru çalıştığını** gösterir; yöntemin gerçek veride başarısını göstermez. O,
+gerçek etiketli kayıtlarla ölçülecek (aynı komut `--kayit` ile gerçek kayıtlarda çalışır)
+ve eşikler gerekirse orada ayarlanacak.
+
+**Bilinen zayıflık:** Rastgele kümedeki sert baş hareketlerinin yaklaşık yarısı doğru kararı
+yanlış nedenle alıyor: "uzun ve yumuşak" yerine "salınım" kuralına düşüyor. Bunun nedeni,
+yavaş harekette tetik anının hareketin ortasına denk gelmesi ve tetik öncesi ortalamanın
+(a_ref) yerçekimi yerine hareketin bir kısmını içermesi. Gerçek kayıtlarda bu kural yeniden
+değerlendirilecek.
 
 ## Simülatör ve test verisi
 
@@ -452,6 +497,7 @@ pytest -v
 python araclar\analiz_ornekleme.py
 python araclar\simulator_dene.py
 python araclar\etiketli_test_kumesi.py
+python araclar\ayrim_degerlendir.py
 python calistir.py
 ```
 
@@ -470,8 +516,9 @@ Gerçek cihaza geçiş tek ayardır: `python araclar\simulator_dene.py --port CO
 - [x] Simülatör (gerçek kartla aynı baytlar, darbe olmayan olaylar dahil) + seri port kaynağı
 - [x] Arayüz: risk göstergesi, son darbe grafiği, seans özeti, sayaçlar, CSV kaydı, etiketleme
 - [x] 20 örneklik etiketli sentetik test kümesi
-- [ ] Ham verinin filtrelenmesi
-- [ ] Darbe / darbe değil ayrımı ve etiketli kümede duyarlılık / yanlış alarm ölçümü
+- [x] Ham verinin filtrelenmesi (ilk sürüm)
+- [x] Darbe / darbe değil ayrımı (ilk sürüm) ve etiketli kümede duyarlılık / yanlış alarm ölçümü
+- [ ] Ayrımın gerçek etiketli kayıtlarda ölçülmesi ve eşiklerin ayarlanması
 - [ ] Uyarı gecikmesinin ölçülmesi
 - [ ] MATLAB: CSV okuma, bağımsız HIC15, çapraz doğrulama, filtre/eşik karşılaştırması
 - [ ] Başarı ölçütlerinin hedef değerleri (danışmanla)

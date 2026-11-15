@@ -18,10 +18,12 @@ yesil;15
 sari;3
 kirmizi;2
 eksik;0
+ayrim_darbe;10
+ayrim_darbe_degil;10
 maks_tepe_g;200,020000
 maks_hic15;1749,300000
-ort_mutlak_fark_hic_yuzde;15,149201
-maks_mutlak_fark_hic_yuzde;72,182207
+ort_mutlak_fark_hic_yuzde;0,054753
+maks_mutlak_fark_hic_yuzde;0,285205
 raunt_sayisi;1
 cerceve_gecerli;561
 crc_hatasi;0

@@ -18,6 +18,15 @@ hesapladığı **özet** (tepe ivme, HIC15, yön, seviye) ve olay penceresinin *
 Alıcı kart (ESP32-C3 #2) bunları USB seri port üzerinden bilgisayara iletir; bu depodaki
 yazılım o noktadan sonrasını yapar.
 
+## Uygulama
+
+![Uygulamanın ekran görüntüsü](docs/ekran_goruntusu.png)
+
+Simülatörle çalışan bir seanstan görüntü: solda kartın gönderdiği risk seviyesi ve son darbenin
+değerleri (altında Python'un bağımsız doğrulaması), ortada son darbenin bileşke ivmesi (mavi
+bant: HIC15 penceresi), sağda bağlantı, iletişim sayaçları ve seans özeti, altta darbe listesi.
+Başlatmak için: `python calistir.py`.
+
 ## Kapsam
 
 ### Kapsam içi — benim alt sistemim (bu depo)
@@ -430,7 +439,7 @@ C:\darbe_olcer
 ├─ data/ornek/          depoda paylaşılan örnek kayıtlar: 20 olaylık etiketli sentetik küme
 │                       (S00_..._olaylar/ham/seans/tanim.csv), örnekleme analizi sonuçları
 ├─ data/kayitlar/       gerçek seans kayıtları (varsayılan olarak depoya gönderilmez)
-└─ docs/                şema, teyit listesi, test protokolleri, rapor görselleri
+└─ docs/                şema, ekran görüntüsü, donanım ekibiyle kararlar, analiz tabloları
 ```
 
 ## Kurulum ve çalıştırma (Windows 11)

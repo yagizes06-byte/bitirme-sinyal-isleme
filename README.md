@@ -255,7 +255,11 @@ py -3.12 -m venv .venv
 pip install -r requirements.txt
 pytest -v
 python araclar\analiz_ornekleme.py
+python araclar\simulator_dene.py
 ```
+
+Gerçek cihaza geçiş tek ayardır: `python araclar\simulator_dene.py --port COM8`
+(takılı portlar: `--portlar`).
 
 ## Yapılacaklar
 
@@ -267,7 +271,7 @@ python araclar\analiz_ornekleme.py
 - [ ] Kalan boşluklar: kalibrasyon sabitleri, Δv aralık eşiği, eksenler, seviye eşikleri (docs/donanim_kararlari.md)
 - [x] Bağımsız doğrulama çekirdeği: HIC15, tepe ivme, yön, Δv, darbe süresi + analitik testler
 - [x] Örnekleme hızı ve kırpılma hatasının sayısal analizi (docs/analiz_ornekleme.md)
-- [ ] Simülatör (gerçek cihazla aynı baytları üreten)
+- [x] Simülatör (gerçek cihazla aynı baytları üreten) + seri port kaynağı + işleme hattı
 - [ ] Arayüz: risk göstergesi, son darbe grafiği, seans özeti, sayaçlar, CSV kaydı
 - [ ] MATLAB: CSV okuma, bağımsız HIC15, çapraz doğrulama, filtre/eşik karşılaştırması
 - [ ] İlk gerçek örnek kayıt ve seri porta geçiş

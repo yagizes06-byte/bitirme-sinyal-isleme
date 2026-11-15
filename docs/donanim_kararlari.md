@@ -51,6 +51,24 @@ henüz açık olan soruları tutar.
    veya sarkaç testi yok" yazıyor. Kastedilen kaskın/sensörün düşürülmesi mi? Hocayla netleşmeli;
    doğrulama planı buna göre yazılacak.
 
+4. **Paket kaybı ve 26 parça:** Bir olay 1 ÖZET + 26 HAM = 27 paket. Paketler birbirinden
+   bağımsız kaybolursa olayın eksiksiz gelme olasılığı (1 − p)^27 olur: %1 kayıpta ≈ %76,
+   %2 kayıpta ≈ %58. Eksik olayda bağımsız doğrulama yapılamaz. ESP-NOW'un onay/yeniden
+   gönderme davranışı ve gerçek kayıp oranı ölçülünce (ESP-NOW testi) şunlardan biri
+   gerekebilir: uygulama düzeyinde yeniden gönderme, parçaların iki kez gönderilmesi ya da
+   pencerenin kısaltılması.
+
+## Boş değerler ne zaman dolacak
+
+| Değer | Ne zaman (donanım ekibi) |
+|---|---|
+| MPU6050 okuma/s | MPU6050 testi |
+| ADXL375 kalibrasyonu, doyma eşiği | ADXL375 gelince |
+| Sensörün kasktaki yeri ve eksen yönleri | kalıcı montaj |
+| Test modu eşiği | testlerden önce (ortak karar) |
+| Alıcının açılış metni | USB çerçeveli alıcı kodu yazılınca (öneri: 0 satır) |
+| Gecikme, menzil, kayıp oranı | ESP-NOW testi ve osiloskop ölçümü |
+
 ## Raporda belirtilecek sınırlamalar
 
 - Jiro değeri ADXL375 hızında değil, I2C okuma hızında yenilenir; tepe açısal hız bu hızla sınırlıdır.

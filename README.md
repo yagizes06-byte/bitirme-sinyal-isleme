@@ -27,6 +27,32 @@ değerleri (altında Python'un bağımsız doğrulaması), ortada son darbenin b
 bant: HIC15 penceresi), sağda bağlantı, iletişim sayaçları ve seans özeti, altta darbe listesi.
 Başlatmak için: `python calistir.py`.
 
+## Literatür ve özgünlük
+
+Dövüş ve çarpışma sporlarında kafa darbelerini ölçen güncel saha çalışmaları çoğunlukla
+ağızlığa yerleştirilmiş ya da kafa bandına takılmış üç eksenli ivmeölçerler kullanıyor ve tepe
+doğrusal ivmeyi (Muay Thai'de en yüksek 162,2 g, amigolukta 141 g) ve dönme ivmesini
+raporluyor [1, 2]. Bu çalışmalarda olaylar sabit bir eşikle (ör. 8 g ya da 25 g) seçiliyor;
+derlemeler ise eşiklerin çalışmadan çalışmaya değiştiğini, darbe tespitinin recall değerinin
+kadınlarda %45'e kadar düşebildiğini ve olayların video ile doğrulanması gerektiğini
+bildiriyor [1, 3, 4]. Karşılaştırılan dokuz çalışmanın hiçbiri Kafa Travması Kriteri'ni
+(HIC) çıktı ölçütü olarak raporlamıyor; en yakın çalışmada ise veriler seanstan sonra cihaz
+üreticisinin bulut portalından alınıyor ve sonuçların cihaza özgü olduğu belirtiliyor [1]. Bu proje kask içindeki sensörden gelen olaylarda
+HIC15'i hesaplıyor, kartın sonucunu ham veriden bağımsız olarak doğruluyor ve sağlık ekibine
+anlık Yeşil/Sarı/Kırmızı uyarı veriyor. Eşiği aşan olayları ikinci bir aşamada darbe ve darbe
+değil olarak ayırıp bunu etiketli kümede duyarlılık ve yanlış alarm oranıyla ölçerek,
+literatürdeki eşik ve doğrulama boşluğuna da cevap vermeyi amaçlıyor.
+
+Ayrıntılı karşılaştırma tablosu, cevap verilen ve verilemeyen boşluklar:
+[docs/literatur_karsilastirma.md](docs/literatur_karsilastirma.md).
+
+**Kaynaklar** (Science AI karşılaştırma tablosundaki çalışmalar; yazar ve DOI: `___`)
+
+1. ___ (2026). Quantifying Head Impacts in Elite Muay Thai: A Case Study Using Instrumented Mouthguards. *Sports*. DOI: ___
+2. ___ (2026). Head impacts in university-level varsity cheerleading athletes: an exploratory study. *Frontiers in Sports and Active Living*. DOI: ___
+3. ___ (2025). Methods for Capturing and Quantifying Contact Events in Collision Sports. *Sports*. DOI: ___
+4. ___ (2026). Instrumented Mouthguards in Women's Rugby League: Quantifying the Incidence and Probability of Head Acceleration Events at Group and Individual Levels. *Sports Medicine*. DOI: ___
+
 ## Kapsam
 
 ### Kapsam içi — benim alt sistemim (bu depo)
